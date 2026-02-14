@@ -1,54 +1,30 @@
-name: Deploy to Production
+name: Deploy
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: ["main"]
+  workflow_dispatch: {}
 
 concurrency:
-  group: production-deploy
-  cancel-in-progress: false
+  group: deploy-main
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    name: Deploy to Linux Server
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Setup SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        shell: bash
         run: |
-          # Create SSH directory
+          set -euo pipefail
           mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-
-          # Write SSH private key
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-
-          # Add server host key to known_hosts
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p 22 lnodebtc.duckdns.org >> ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
 
-          echo "SSH setup completed"
-
-      - name: Deploy to server
+      - name: Run deploy script
+        shell: bash
         run: |
-          ssh -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=yes \
-              -o ConnectTimeout=10 \
-              -p 22 \
-              pi@lnodebtc.duckdns.org \
-              "bash /home/pi/AI-Startup-Lab/bitcoin-prediction/run.sh"
-
-      - name: Cleanup
-        if: always()
-        run: |
-          # Remove SSH key
-          rm -f ~/.ssh/deploy_key
-          echo "Cleanup completed"
+          set -euo pipefail
+          ssh -p 22 -i ~/.ssh/id_ed25519 pi@lnodebtc.duckdns.org \
+            "bash /home/pi/AI-Startup-Lab/bitcoin-prediction/run.sh"
