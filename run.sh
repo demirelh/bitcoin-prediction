@@ -64,9 +64,20 @@ log_error() {
 log_info "Starting deployment script..."
 log_info "Project directory: ${PROJECT_DIR}"
 
+# Change to project directory for all git operations
+cd "${PROJECT_DIR}" || {
+    log_error "Failed to change to project directory: ${PROJECT_DIR}"
+    exit 1
+}
+
 # Check if we're in a Git repository
 if [ ! -d "${PROJECT_DIR}/.git" ]; then
     log_error "Not a Git repository: ${PROJECT_DIR}"
+    log_error "This script requires the repository to be already cloned at ${PROJECT_DIR}"
+    log_error ""
+    log_error "To fix this, SSH into the server and run:"
+    log_error "  mkdir -p $(dirname "${PROJECT_DIR}")"
+    log_error "  git clone <repository-url> ${PROJECT_DIR}"
     exit 1
 fi
 
