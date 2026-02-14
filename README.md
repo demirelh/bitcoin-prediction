@@ -31,6 +31,7 @@ python -m pytest tests/ -v
 bitcoin-prediction/
 ├── plan.md              # Architecture & design (single source of truth)
 ├── app.py               # Streamlit dashboard (4 pages)
+├── run.sh               # Production deployment script (git pull + restart)
 ├── requirements.txt     # Dependencies
 ├── data/                # CSV fallback data
 │   ├── ibit_flows.csv   # Real IBIT flow data (Farside)
@@ -126,6 +127,22 @@ This will:
 2. Prompt for a dashboard password (basic auth)
 3. Install + enable the `btc-predict` systemd service
 4. Start everything
+
+### Updating the Deployment
+
+After the initial setup, use the `run.sh` script to update the deployment:
+
+```bash
+# Pull latest code, update dependencies, and restart service
+./run.sh
+```
+
+The script will:
+1. Pull the latest version from Git (with automatic stashing if needed)
+2. Install/update Python dependencies
+3. Restart the `btc-predict` systemd service
+
+The script is safe to run multiple times and includes error handling.
 
 ### Manual Deploy
 
